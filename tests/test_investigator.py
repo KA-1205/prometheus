@@ -152,7 +152,7 @@ def test_llm_client_wire_contract(monkeypatch):
     monkeypatch.setenv("PROMETHEUS_LLM_BASE_URL",
                        "https://api.groq.com/openai/v1")
     monkeypatch.setenv("PROMETHEUS_LLM_MODEL", "llama-3.3-70b-versatile")
-    monkeypatch.setenv("PROMETHEUS_LLM_API_KEY", "gsk_test_key_000000000001")
+    monkeypatch.setenv("PROMETHEUS_LLM_API_KEY", "fixture-only-not-a-real-api-key")
 
     client = LLMClient(transport=httpx.MockTransport(handler))
     assert client.available
@@ -162,7 +162,7 @@ def test_llm_client_wire_contract(monkeypatch):
     assert out["text"] == '{"verdict":"clear"}'
     assert captured["url"].startswith(
         "https://api.groq.com/openai/v1/chat/completions")
-    assert captured["auth"] == "Bearer gsk_test_key_000000000001"
+    assert captured["auth"] == "Bearer fixture-only-not-a-real-api-key"
     assert captured["body"]["model"] == "llama-3.3-70b-versatile"
     assert [m["role"] for m in captured["body"]["messages"]] == \
         ["system", "user"]
