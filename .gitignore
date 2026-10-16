@@ -18,6 +18,8 @@ build/
 .vscode/
 
 # Secrets: .env.example is the tracked template
+.env
+.env.*
 !.env.example
 
 # Local artifacts (scratch only — artifacts/ metric JSONs are committed evidence)
