@@ -38,6 +38,7 @@ import argparse
 import json
 import os
 import platform
+import subprocess
 import sys
 import time
 from typing import Dict, List, Tuple
@@ -352,7 +353,9 @@ def evaluate(*, seed: int = 42, accounts: int = 1200, merchants: int = 150,
     mp_meta = report_meta.get("multi_prevalence", {}) or {}
     headline_pr = mp_meta.get(HEADLINE_PREVALENCE, {}).get("pr_auc")
     artifact = {
-        "schema": "prometheus.baseline_eval.v4",
+        "source_revision": {"commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+                            "working_tree_dirty": bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip())},
+        "schema": "prometheus.baseline_eval.v5",
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "seed": seed,
         "platform": {"python": platform.python_version(),
@@ -409,6 +412,9 @@ def evaluate(*, seed: int = 42, accounts: int = 1200, merchants: int = 150,
         "headline": {
             "metric": f"meta PR-AUC @ {HEADLINE_PREVALENCE} prevalence "
                       f"(fixed prevalence, cross-config comparable)",
+            "status": "available" if headline_pr is not None else "unavailable",
+            "requested_prevalence": float(HEADLINE_PREVALENCE),
+            "achieved_prevalence": mp_meta.get(HEADLINE_PREVALENCE, {}).get("achieved_prevalence"),
             "pr_auc": headline_pr,
             "overall_meta_pr_auc": report_meta["overall"]["pr_auc"],
             "overall_xgb_pr_auc": report_xgb["overall"]["pr_auc"],
@@ -419,6 +425,7 @@ def evaluate(*, seed: int = 42, accounts: int = 1200, merchants: int = 150,
             "xgb_only_baseline": report_xgb,
         },
         "per_attack_type": by_type,
+        "per_attack_type_note": "p95 thresholds use evaluation normals: exploratory diagnostic, not a frozen operational threshold",
     }
     if with_mechanism_probe:
         probe = _build_mechanism_probe(
