@@ -1,8 +1,16 @@
 # Project Prometheus
 
-**Closed-Loop Fraud Detection System** — Floor (F1–F8)
+**Synthetic fraud-detection research prototype**
 
-A stateful Financial Digital Twin generates synthetic transactions with 8 AMLSim-verified fraud typologies. A rule-based Attack Compiler produces 6 benchmark attack types (2 held out for generalization testing). The Blue Team (XGBoost + GNN + meta-model) detects fraud, and a Sensitivity Engine diagnoses misses to drive weakness-directed retraining (max 2 rounds). A FastAPI dashboard demonstrates the 3-beat loop: Red wins → retrain → Blue wins → held-out generalization.
+A stateful Financial Digital Twin generates synthetic transactions with 8 AMLSim-verified fraud typologies. A rule-based Attack Compiler produces 6 benchmark attack types (2 held out for generalization testing). The Blue Team (XGBoost + GNN + meta-model) detects fraud, and a Sensitivity Engine diagnoses misses to drive weakness-directed retraining (max 2 rounds). A FastAPI dashboard exposes attack, diagnosis, and bounded retraining flows. Whether retraining helps is evaluated separately; success is not assumed.
+
+This is Kartik Arora’s fork of [harshil-sri/prometheus](https://github.com/harshil-sri/prometheus), a collaborative project. My documented contributions cover the SSE fan-out/dashboard stream and tabular-diffusion fidelity evaluation. See [authored commits and tests](docs/CONTRIBUTIONS.md).
+
+[Evaluation protocol](docs/EVALUATION.md) · [Raw evaluation](artifacts/baseline_eval.json) · [Tests](tests/) · [CI runs](https://github.com/KA-1205/prometheus/actions)
+
+## Recorded result and limits
+
+The recorded seed-42 run evaluated 7,424 later-step synthetic rows, including 129 fraud rows (about 1.74%). Meta-model PR-AUC was **0.8628**, compared with **0.8106** for XGBoost-only on the same held-out rows. This is one generator-specific run, not real-bank validation. The per-attack diagnostic still misses A2; broad generalization claims are unsupported. See the [protocol](docs/EVALUATION.md) for fixed thresholds, prevalence, and data boundaries.
 
 ## Quick Start
 
@@ -69,15 +77,18 @@ src/
 
 ## Demo
 
-The 3-beat demo runs via the dashboard:
-1. **Beat 1**: Red Team attacks → Blue Team misses (~40-60% recall on held-out types)
-2. **Beat 2**: Sensitivity Engine diagnoses weakness → Attack Compiler generates targeted variants → retrain → Blue Team catches it
-3. **Beat 3**: Held-out attack types (A2, A5) run against retrained Blue Team → generalization demonstrated
+Use the dashboard to inspect three stages:
+
+1. Generate attacks and inspect which ones the current detector misses.
+2. Diagnose those misses and run at most two weakness-directed retraining rounds.
+3. Evaluate held-out attack types A2 and A5, retaining failures as well as improvements.
+
+The demo illustrates the workflow. Use the held-out evaluator and raw artifacts for performance claims.
 
 ## Graded Artifacts
 
 1. **Runnable GitHub repo** — this repository
-2. **.docx walkthrough** — `Prometheus_Walkthrough.docx` (covers novel attacks, generation/simulation, detection model + efficacy, real-world feasibility)
+2. **.docx walkthrough** — [Prometheus_Walkthrough.docx](docs/archive/Prometheus_Walkthrough.docx) (covers novel attacks, generation/simulation, detection model + efficacy, real-world feasibility)
 3. **Working web prototype** — `http://localhost:8000` (FastAPI + single-page HTML/JS)
 
 ## Evaluation protocol
